@@ -10,5 +10,7 @@ type BlogPost struct {
 
 // Comment Blogpost comment.
 type Comment struct {
-	Text string
+	ID         string
+	BlogPostID string
+	Text       string
 }
