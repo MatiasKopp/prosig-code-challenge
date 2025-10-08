@@ -12,7 +12,7 @@ type HTTPErrorResponse struct {
 }
 
 // handlerHTTPError Translates service errors into HTTP errors.
-func HandlerHTTPError(w http.ResponseWriter, msg string, err error) {
+func HandlerHTTPError(w http.ResponseWriter, msg string, err error, errMapper map[error]int) {
 	httpErr := HTTPErrorResponse{
 		Message: msg,
 		Cause:   err.Error(),
@@ -24,9 +24,8 @@ func HandlerHTTPError(w http.ResponseWriter, msg string, err error) {
 		return
 	}
 
-	var statusCode int
-	switch err {
-	default:
+	statusCode, exists := errMapper[err]
+	if !exists {
 		statusCode = http.StatusInternalServerError
 	}
 
@@ -37,6 +36,8 @@ func HandlerHTTPError(w http.ResponseWriter, msg string, err error) {
 
 // handlerHTTPResponse Translates service errors into HTTP errors.
 func HandlerHTTPResponse(w http.ResponseWriter, statusCode int, response any) {
+	w.WriteHeader(statusCode)
+
 	if response != nil {
 		data, err := json.Marshal(response)
 		if err != nil {
@@ -48,5 +49,4 @@ func HandlerHTTPResponse(w http.ResponseWriter, statusCode int, response any) {
 		return
 	}
 
-	w.WriteHeader(statusCode)
 }

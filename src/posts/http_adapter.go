@@ -9,6 +9,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+var (
+	errMapper = map[error]int{
+		ErrBlogPostNotFound: http.StatusNotFound,
+	}
+)
+
 // httpAdapter Productive post http adapter implementation
 type httpAdapter struct {
 	Service Service
@@ -27,7 +33,7 @@ func (a *httpAdapter) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := a.Service.GetAllBlogPosts(p.Limit, p.Offset)
 	if err != nil {
-		httputil.HandlerHTTPError(w, "unexpected error getting all blog posts", err)
+		httputil.HandlerHTTPError(w, "unexpected error getting all blog posts", err, errMapper)
 		return
 	}
 
@@ -49,7 +55,7 @@ func (a *httpAdapter) GetPost(w http.ResponseWriter, r *http.Request) {
 	post, err := a.Service.GetBlogPost(id)
 	if err != nil {
 		msg := fmt.Sprintf("unexpected error getting post with ID (%s)", id)
-		httputil.HandlerHTTPError(w, msg, err)
+		httputil.HandlerHTTPError(w, msg, err, errMapper)
 		return
 	}
 
@@ -61,33 +67,35 @@ func (a *httpAdapter) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var requestBody CreatePostRequest
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		httputil.HandlerHTTPError(w, "unexpected error reading post creation body", err)
+		httputil.HandlerHTTPError(w, "unexpected error reading post creation body", err, errMapper)
 		return
 	}
 
-	err = a.Service.CreateBlogPost(&requestBody)
+	postID, err := a.Service.CreateBlogPost(requestBody.Title, requestBody.Content)
 	if err != nil {
-		httputil.HandlerHTTPError(w, "unexpected error creating post", err)
+		httputil.HandlerHTTPError(w, "unexpected error creating post", err, errMapper)
 		return
 	}
 
-	httputil.HandlerHTTPResponse(w, http.StatusCreated, nil)
+	httputil.HandlerHTTPResponse(w, http.StatusCreated, map[string]any{"blog_post_id": postID})
 }
 
 // CreateComment Creates new comment for specific post.
 func (a *httpAdapter) CreateComment(w http.ResponseWriter, r *http.Request) {
+	blogPostID := chi.URLParam(r, "id")
+
 	var requestBody CreateCommentRequest
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		httputil.HandlerHTTPError(w, "unexpected error reading comment creation body", err)
+		httputil.HandlerHTTPError(w, "unexpected error reading comment creation body", err, errMapper)
 		return
 	}
 
-	err = a.Service.CreateComment(&requestBody)
+	commentID, err := a.Service.CreateComment(blogPostID, requestBody.Text)
 	if err != nil {
-		httputil.HandlerHTTPError(w, "unexpected error comment post", err)
+		httputil.HandlerHTTPError(w, "unexpected error creating comment", err, errMapper)
 		return
 	}
 
-	httputil.HandlerHTTPResponse(w, http.StatusCreated, nil)
+	httputil.HandlerHTTPResponse(w, http.StatusCreated, map[string]any{"comment_id": commentID})
 }

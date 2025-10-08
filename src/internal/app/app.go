@@ -63,6 +63,9 @@ func (a *App) mapRoutes() {
 
 	a.Router.Route("/api", func(api chi.Router) {
 		api.Get("/posts", a.PostsHTTPAdapter.GetAllPosts)
+		api.Get("/posts/{id}", a.PostsHTTPAdapter.GetPost)
+		api.Post("/posts", a.PostsHTTPAdapter.CreatePost)
+		api.Post("/posts/{id}/comments", a.PostsHTTPAdapter.CreateComment)
 	})
 }
 

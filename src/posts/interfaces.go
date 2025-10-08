@@ -24,10 +24,10 @@ type Service interface {
 	GetAllBlogPosts(page, limit int) ([]BlogPost, error)
 	// GetBlogPost Returns single blog post with provided ID.
 	GetBlogPost(id string) (*BlogPost, error)
-	// CreateBlogPost Creates new blog post.
-	CreateBlogPost(request *CreatePostRequest) error
-	// CreateComment Creates new comment associated with blog post.
-	CreateComment(request *CreateCommentRequest) error
+	// CreateBlogPost Creates a new blog post and returns its generated ID.
+	CreateBlogPost(title, content string) (int64, error)
+	// CreateComment Creates a new comment and associates it with a blog post.
+	CreateComment(blogPostID, text string) (int64, error)
 }
 
 // Repository Posts repository interface.
@@ -36,10 +36,10 @@ type Repository interface {
 	GetAllBlogPosts(page, limit int) ([]BlogPost, error)
 	// GetBlogPost Returns single blog post with provided ID.
 	GetBlogPost(id string) (*BlogPost, error)
-	// CreateBlogPost Creates new blog post.
-	CreateBlogPost(request *CreatePostRequest) error
-	// CreateComment Creates new comment associated with blog post.
-	CreateComment(request *CreateCommentRequest) error
+	// CreateBlogPost Creates a new blog post and returns its generated ID.
+	CreateBlogPost(title, content string) (int64, error)
+	// CreateComment Creates a new comment and associates it with a blog post.
+	CreateComment(blogPostID, text string) (int64, error)
 }
 
 // CreatePostRequest Structure used in new post request.
@@ -50,8 +50,7 @@ type CreatePostRequest struct {
 
 // CreateCommentRequest Structure used in new comment request.
 type CreateCommentRequest struct {
-	BlogPostID string `json:"blog_post_id"`
-	Text       string `json:"text"`
+	Text string `json:"text"`
 }
 
 // GetAllResponse Get all blog posts response

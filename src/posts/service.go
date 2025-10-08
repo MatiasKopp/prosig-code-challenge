@@ -18,15 +18,20 @@ func (s *service) GetAllBlogPosts(limit, offset int) ([]BlogPost, error) {
 
 // GetBlogPost Returns single blog post with provided ID.
 func (s *service) GetBlogPost(id string) (*BlogPost, error) {
-	return nil, nil
+	return s.Repository.GetBlogPost(id)
 }
 
-// CreateBlogPost Creates new blog post.
-func (s *service) CreateBlogPost(request *CreatePostRequest) error {
-	return nil
+// CreateBlogPost Creates a new blog post and returns its generated ID.
+func (s *service) CreateBlogPost(title, content string) (int64, error) {
+	return s.Repository.CreateBlogPost(title, content)
 }
 
-// CreateComment Creates new comment associated with blog post.
-func (s *service) CreateComment(request *CreateCommentRequest) error {
-	return nil
+// CreateComment Creates a new comment and associates it with a blog post.
+func (s *service) CreateComment(blogPostID, text string) (int64, error) {
+	_, err := s.Repository.GetBlogPost(blogPostID)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.Repository.CreateComment(blogPostID, text)
 }
