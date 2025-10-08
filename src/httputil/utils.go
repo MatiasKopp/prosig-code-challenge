@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -12,10 +13,10 @@ type HTTPErrorResponse struct {
 }
 
 // handlerHTTPError Translates service errors into HTTP errors.
-func HandlerHTTPError(w http.ResponseWriter, msg string, err error, errMapper map[error]int) {
+func HandlerHTTPError(w http.ResponseWriter, msg string, serviceErr error, errMapper map[error]int) {
 	httpErr := HTTPErrorResponse{
 		Message: msg,
-		Cause:   err.Error(),
+		Cause:   serviceErr.Error(),
 	}
 
 	data, err := json.Marshal(httpErr)
@@ -24,9 +25,11 @@ func HandlerHTTPError(w http.ResponseWriter, msg string, err error, errMapper ma
 		return
 	}
 
-	statusCode, exists := errMapper[err]
-	if !exists {
-		statusCode = http.StatusInternalServerError
+	statusCode := http.StatusInternalServerError
+	for errMap, status := range errMapper {
+		if errors.Is(serviceErr, errMap) {
+			statusCode = status
+		}
 	}
 
 	w.Header().Add("Content-Type", "application/problem+json")

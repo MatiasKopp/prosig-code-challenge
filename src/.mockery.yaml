@@ -1,0 +1,7 @@
+filename: "mock_{{ .InterfaceName|snakecase }}.go"
+structname: "Mocks{{ .InterfaceName }}"
+packages:
+    github.com/MatiasKopp/prosig-code-challenge/posts:
+        interfaces:
+            Repository:
+            Service:

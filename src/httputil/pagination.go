@@ -5,6 +5,11 @@ import (
 	"strconv"
 )
 
+const (
+	// DefaultLimit Default pagination limit.
+	DefaultLimit = 10
+)
+
 // Pagination Basic pagination structure.
 type Pagination struct {
 	Limit  int `json:"limit"`
@@ -24,7 +29,7 @@ func GetPaginationParams(r *http.Request) Pagination {
 
 	limit, _ := strconv.Atoi(limitStr)
 	if limit < 1 {
-		limit = 10
+		limit = DefaultLimit
 	}
 
 	offset := (page - 1) * limit

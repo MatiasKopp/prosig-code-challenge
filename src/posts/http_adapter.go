@@ -2,6 +2,7 @@ package posts
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -12,7 +13,10 @@ import (
 var (
 	errMapper = map[error]int{
 		ErrBlogPostNotFound: http.StatusNotFound,
+		ErrorBadRequest:     http.StatusBadRequest,
 	}
+
+	ErrorBadRequest = errors.New("bad request")
 )
 
 // httpAdapter Productive post http adapter implementation
@@ -59,15 +63,25 @@ func (a *httpAdapter) GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(post.Comments) == 0 {
+		post.Comments = []Comment{}
+	}
+
 	httputil.HandlerHTTPResponse(w, http.StatusOK, post)
 }
 
 // CreatePost Creates new post.
 func (a *httpAdapter) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var requestBody CreatePostRequest
+	// Using a new decoder here instead of json.Unmarshal to add more JSON validations in the future if necessary.
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		httputil.HandlerHTTPError(w, "unexpected error reading post creation body", err, errMapper)
+		return
+	}
+
+	if requestBody.Title == "" || requestBody.Content == "" {
+		httputil.HandlerHTTPError(w, "missing title or content", ErrorBadRequest, errMapper)
 		return
 	}
 
@@ -88,6 +102,11 @@ func (a *httpAdapter) CreateComment(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		httputil.HandlerHTTPError(w, "unexpected error reading comment creation body", err, errMapper)
+		return
+	}
+
+	if requestBody.Text == "" {
+		httputil.HandlerHTTPError(w, "missing comment text", ErrorBadRequest, errMapper)
 		return
 	}
 
