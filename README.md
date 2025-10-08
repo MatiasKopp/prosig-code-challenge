@@ -1,11 +1,11 @@
 # prosig-code-challenge
 Prosigliere backend code challenge
 
-## Requirements
+## Requirements
 * Go 1.25.2
 * Docker
 
-## Instructions
+## Instructions
 
 To run using docker execute the following commands in the root folder:
 ```bash
