@@ -1,6 +1,10 @@
 package posts
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/MatiasKopp/prosig-code-challenge/httputil"
+)
 
 // HTTPAdapter Posts http adapter interface.
 type HTTPAdapter interface {
@@ -17,7 +21,7 @@ type HTTPAdapter interface {
 // Service Posts services interface.
 type Service interface {
 	// GetAllBlogPosts Returns all existing blog posts paginated.
-	GetAllBlogPosts() (*GetAllResponse, error)
+	GetAllBlogPosts(page, limit int) ([]BlogPost, error)
 	// GetBlogPost Returns single blog post with provided ID.
 	GetBlogPost(id string) (*BlogPost, error)
 	// CreateBlogPost Creates new blog post.
@@ -29,7 +33,7 @@ type Service interface {
 // Repository Posts repository interface.
 type Repository interface {
 	// GetAllBlogPosts Returns all existing blog posts paginated.
-	GetAllBlogPosts() (*GetAllResponse, error)
+	GetAllBlogPosts(page, limit int) ([]BlogPost, error)
 	// GetBlogPost Returns single blog post with provided ID.
 	GetBlogPost(id string) (*BlogPost, error)
 	// CreateBlogPost Creates new blog post.
@@ -52,22 +56,6 @@ type CreateCommentRequest struct {
 
 // GetAllResponse Get all blog posts response
 type GetAllResponse struct {
-	BlogPosts  []BlogPost `json:"blog_posts"`
-	Pagination Pagination `json:"pagination"`
-}
-
-// Pagination Pagination info
-type Pagination struct {
-	Total        int             `json:"total"`
-	TotalPages   int             `json:"total_pages"`
-	ItemsPerPage int             `json:"items_per_page"`
-	CurrentPage  int             `json:"current_page"`
-	Links        PaginationLinks `json:"link"`
-}
-
-// PaginationLinks Pagination links.
-type PaginationLinks struct {
-	Self string `json:"self"`
-	Next string `json:"next"`
-	Last string `json:"last"`
+	BlogPosts  []BlogPost          `json:"blog_posts"`
+	Pagination httputil.Pagination `json:"pagination"`
 }

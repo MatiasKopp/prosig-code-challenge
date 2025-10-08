@@ -1,16 +1,21 @@
 package app
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/MatiasKopp/prosig-code-challenge/posts"
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Config App configuration structure.
 type Config struct {
-	Port string `env:"APP_PORT"`
+	Port       string `env:"APP_PORT"`
+	DBLocation string `env:"DB_LOCATION"`
 }
 
 // App Represents productive app.
@@ -19,6 +24,7 @@ type App struct {
 	Router chi.Router
 
 	// Handlers
+	PostsHTTPAdapter posts.HTTPAdapter
 }
 
 // New Returns new productive app implementation
@@ -54,9 +60,33 @@ func (a *App) Start() {
 // mapRoutes Maps routes to handlers
 func (a *App) mapRoutes() {
 	a.Router.Get("/ping", HealthCheck)
+
+	a.Router.Route("/api", func(api chi.Router) {
+		api.Get("/posts", a.PostsHTTPAdapter.GetAllPosts)
+	})
 }
 
 // bootstrap Bootstraps handlers
 func (a *App) bootstrap() {
+	db, err := sql.Open("sqlite3", a.Config.DBLocation)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	repository, err := posts.NewRepository(db)
+	if err != nil {
+		panic("error creating repository")
+	}
+
+	service, err := posts.NewService(repository)
+	if err != nil {
+		panic("error creating service")
+	}
+
+	httpAdapter, err := posts.NewHTTPAdapter(service)
+	if err != nil {
+		panic("error creating service")
+	}
+
+	a.PostsHTTPAdapter = httpAdapter
 }

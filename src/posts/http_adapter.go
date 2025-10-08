@@ -23,13 +23,23 @@ func NewHTTPAdapter(service Service) (HTTPAdapter, error) {
 
 // GetAllPosts Returns all posts.
 func (a *httpAdapter) GetAllPosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := a.Service.GetAllBlogPosts()
+	p := httputil.GetPaginationParams(r)
+
+	posts, err := a.Service.GetAllBlogPosts(p.Limit, p.Offset)
 	if err != nil {
 		httputil.HandlerHTTPError(w, "unexpected error getting all blog posts", err)
 		return
 	}
 
-	httputil.HandlerHTTPResponse(w, http.StatusOK, posts)
+	if len(posts) == 0 {
+		posts = []BlogPost{}
+	}
+	response := GetAllResponse{
+		BlogPosts:  posts,
+		Pagination: p,
+	}
+
+	httputil.HandlerHTTPResponse(w, http.StatusOK, response)
 }
 
 // GetPost Returns single specific post.

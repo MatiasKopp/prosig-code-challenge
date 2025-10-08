@@ -45,6 +45,7 @@ func HandlerHTTPResponse(w http.ResponseWriter, statusCode int, response any) {
 		}
 		w.Header().Add("Content-Type", "application/json")
 		w.Write(data)
+		return
 	}
 
 	w.WriteHeader(statusCode)

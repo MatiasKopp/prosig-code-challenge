@@ -1,2 +1,3 @@
 export APP_PORT=":8080"
-go run cmd/api/main.go
+export DB_LOCATION="$PWD/posts.db"
+cd src; go run cmd/api/main.go
